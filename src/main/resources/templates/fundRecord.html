@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorator="layout/layout">
+<head>
+<title>德浓信息：投资记录</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="info-reveal-title">投资记录</div>
+		<div class="info-reveal-search">
+				<div class="row">
+					<div class="col-md-3" style="width: 23%">
+						投资ID：<input id="fundId" placeholder="请输入投资ID" />
+					</div>
+					<div class="col-md-3" style="top: 6px;width: 252px;">
+						<span style="float: left;">投资状态：</span>
+						<div style="float: left; width: 148px;">
+							<select id="selectPickerId" class="form-control selectpicker">
+								<option>请选择</option>
+								<option>待审批</option>
+								<option>审批已通过</option>
+								<option>审批未通过</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-5" style="width: 39%;">
+						报告发送时间： <input size="16" type="text" id="fundTimeStart"
+						class="form_datetime" placeholder="开始时间"/> <span>-</span> <input size="16"
+						type="text" id="fundTimeEnd" class="form_datetime" placeholder="结束时间"/>
+					</div>
+					<div class="col-md-2" style="margin-bottom: 10px;width: 148px;">
+						<button type="reset" class="btn btn-default" onclick="reset()">重置</button>
+						<button type="submit" class="btn btn-primary" onclick="search();" style="margin-left: 12px;">查询</button>
+					</div>
+				</div>
+		</div>
+		<div class="fund_record_total" style="display: none;">
+			<div class="col-md-3">
+				投资总金额：<span>150.00 </span>万元
+			</div>
+			<div class="col-md-3">
+				投资总回款：<span>150.00 </span>万元
+			</div>
+			<div class="col-md-3">
+				投资总收益：<span>150.00 </span>万元
+			</div>
+			<div class="col-md-3">
+				平台总收益：<span>150.00 </span>万元
+			</div>
+		</div>
+		<div class="info-reveal-table" id="table_panle">
+			<div>
+				<table id="gridTable" border="1"></table>
+				<div id="pager2"></div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			//<![CDATA[
+			$(function() {
+				$("#fund_record").css("background", "#000");
+				$("#fund_record a").addClass("active");
+				$(window).resize(function(){　　
+					$("#gridTable").setGridWidth($("#table_panle").width());　
+				});　
+				//页面加载完成之后执行
+				pageInit();
+				initDatetimepocker();
+			});
+			$("body").keydown(function(event) {
+		        if (event.keyCode == "13") {//keyCode=13是回车键
+		        	search();
+		        }
+		    });
+			function search() {
+				var investCode = $("#fundId").val();
+				var status = $('#selectPickerId').val();
+				if(status =='请选择'){
+					status = null;
+				}
+				var fundTimeStart = $("#fundTimeStart").val();
+				var fundTimeEnd = $("#fundTimeEnd").val();
+				var data = {
+					investCode : investCode,
+					status : status,
+					fundTimeStart :fundTimeStart,
+					fundTimeEnd :fundTimeEnd
+				};
+				$("#gridTable").setGridParam({
+					'page' : 1,
+					'postData' : data
+				});
+				$("#gridTable").jqGrid('setGridParam', {
+					datatype : 'json'
+				}).trigger('reloadGrid');
+			}
+			function reset(){
+				$(':input').val("");
+				$("#selectPickerId").each(function(){
+					$(this).selectpicker('val',$(this).find('option:first').val());
+					$(this).find("option").attr("selected", false);   
+				});
+				$("#fundTimeStart").datetimepicker('remove');
+				$("#fundTimeEnd").datetimepicker('remove');
+				initDatetimepocker();
+				search();
+			}
+			function pageInit() {
+				//创建jqGrid组件
+				$("#gridTable").jqGrid(
+						{
+							url : '/fundRecordData',//组件创建完成之后请求数据的url
+							datatype : "json",//请求数据返回的类型。可选json,xml,txt
+							colNames : [ '投资ID', 'R1投资(万元)', 'R2投资(万元)',
+									'R3投资(万元)', 'R4投资(万元)', 'R5投资(万元)', '发送时间',
+									'总金额(万元)', '投资状态' ],
+							colModel : [ //jqGrid每一列的配置信息。包括名字，索引，宽度,对齐方式.....
+							{
+								name : 'investCode',
+								index : 'investCode',
+								sortable : false,
+								align : "center",
+								sortable : true
+							}, {
+								name : 'r1Amount',
+								index : 'r1Amount',
+								sortable : true,
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								align : "center"
+							}, {
+								name : 'r2Amount',
+								index : 'r2Amount',
+								sortable : true,
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								align : "center"
+							}, {
+								name : 'r3Amount',
+								index : 'r3Amount',
+								sortable : true,
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								align : "center"
+							}, {
+								name : 'r4Amount',
+								index : 'r4Amount',
+								sortable : true,
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								align : "center"
+							}, {
+								name : 'r5Amount',
+								index : 'r5Amount',
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								sortable : true,
+								align : "center"
+							}, {
+								name : 'sendTimeStr',
+								index : 'sendTimeStr',
+								sortable : true,
+								align : "center",
+								width: '180px' 
+							}, {
+								name : 'total',
+								index : 'total',
+								formatter : "number",
+								formatoptions : {
+									decimalSeparator : ".",
+									thousandsSeparator : ",",
+									decimalPlaces : 2,
+									defaulValue : 0
+								},
+								sortable : true,
+								align : "center"
+							}, {
+								name : 'status',
+								index : 'status',
+								sortable : true,
+								align : "center"
+							} ],
+							sortname: 'sendTime', //设置默认的排序列
+							sortorder: 'asc',
+							width:"100%",
+				            autowidth:true,
+							rowNum : 10,//一页显示多少条
+							rowList : [ 10, 20, 30 ],//可供用户选择一页显示多少条
+							pager : '#pager2',//表格页脚的占位符(一般是div)的id
+							mtype : "post",//向后台请求数据的ajax的类型。可选post,get
+							viewrecords : true,
+							height : "480px",
+							caption : ""
+						});
+				$("#gridTable").closest(".ui-jqgrid-bdiv").css({
+					"overflow-x" : "hidden"
+				});
+			}
+			function initDatetimepocker(){
+				$("#fundTimeStart").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#fundTimeStart").datetimepicker("setEndDate",
+									$("#fundTimeEnd").val())
+						});
+				$("#fundTimeEnd").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#fundTimeEnd").datetimepicker("setStartDate",
+									$("#fundTimeStart").val());
+						});
+			}
+			//]]>
+		</script>
+	</div>
+</body>
+</html>

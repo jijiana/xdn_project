@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorator="layout/layout">
+<head>
+<title>德浓信息：投资公司</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="info-reveal-title">投资公司</div>
+		<div class="info-reveal-search" id="reveal-search">
+			<div class="row" style="">
+				<div class="col-md-3">
+					ID：<input id="company_code_ct" name="companyCode"  placeholder="请输入ID"/>
+				</div>
+				<div class="col-md-3">
+					联系人：<input id="contact_name_ct" name="contactName"  placeholder="请输入联系人姓名"/>
+				</div>
+				<div class="col-md-3">
+					投资公司：<input id="company_ct" name="name"  placeholder="请输入投资公司名称"/>
+				</div>
+				<div class="col-md-3">
+					<button type="reset" class="btn btn-default" id="resert">重置</button>
+					<button type="submit" class="btn btn-primary" onclick="search();"  style="margin-left: 12px;">查询</button>
+				</div>
+			</div>
+			<div class="row" style="">
+				<div class="col-md-8">
+					<button type="button"
+						class="btn btn-default btn-sm add-company-button" id="addCompany" style="height: 46px;">
+						<span class="glyphicon glyphicon-plus-sign"></span> <span
+							class="addCompany">添加公司信息</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="info-reveal-table" id="table_panle">
+			<div>
+				<table id="gridTable"  border="1" style="width: 98%;"></table>
+				<div id="pager2"></div>
+			</div>
+		</div>
+		<!-- 添加公司 -->
+
+		<div title="添加公司信息" id="add_dialog" style="display: none;">
+			<form class="form-inline" style="padding-top: 3px;"
+				id="add_company_form">
+				<div>
+					<table class="add_info_table">
+						<tr>
+							<td>基金公司名称：</td>
+							<td><input name="name" id="add_company_name_input" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="nameErrorMsg"><span id="nameErrorMsgSpan"></span></td>
+						</tr>
+						<tr>
+							<td>联系人：</td>
+							<td><input name="contactName" id="add_contact_name_input" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="contactNameErrorMsg"><span id="contactNameErrorMsgSpan"></span></td>
+						</tr>
+						<tr>
+							<td>联系方式：</td>
+							<td><input id="phoneNo" name="contactNo" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="noErrorMsg"><span id="noErrorMsgSpan"></span></td>
+						</tr>
+						<tr>
+							<td>基金公司地址：</td>
+							<td><input name="address" id="add_company_address_input" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="addressErrorMsg"><span id="addressErrorMsgSpan"></span></td>
+						</tr>
+					</table>
+				</div>
+			</form>
+		</div>
+		<!-- 编辑公司 -->
+		<div title="编辑公司信息" id="edit_dialog" style="display: none;">
+			<form class="form-inline" style="padding-top: 3px;"
+				id="edit_company_form">
+				<input id="id" name="id" style="display: none" />
+				<div>
+					<table class="add_info_table">
+						<tr>
+							<td>基金公司名称：</td>
+							<td><input id="nameInfo" name="name" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="nameEditErrorMsg"><span id="nameEditErrorMsgSpan"></span></td>
+						</tr>
+						<tr>
+							<td>联系人：</td>
+							<td><input id="contactNameInfo" name="contactName" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="contactNameEditErrorMsg"><span
+								id="contactNameEditErrorMsgSpan"></span></td>
+						</tr>
+						<tr>
+							<td>联系方式：</td>
+							<td><input id="contactNoInfo" name="contactNo" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="noErrorMsgEdit"><span id="noErrorMsgSpanEdit"></span></td>
+						</tr>
+						<tr>
+							<td>基金公司地址：</td>
+							<td><input id="addressInfo" name="address" /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td style="font-size: 10px; color: red; display: none"
+								id="addressEditErrorMsg"><span id="addressEditErrorMsgSpan"></span></td>
+						</tr>
+					</table>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+			//<![CDATA[
+			$(function() {
+				$("#company").css("background", "#000");
+				$("#company a").addClass("active");
+				$(window).resize(function(){　　
+					$("#gridTable").setGridWidth($("#table_panle").width());　
+				});　
+				//页面加载完成之后执行
+				pageInit();
+				$("#resert").on("click", function(even) {
+					$('#reveal-search :input').val("");
+					search();
+				});
+			});
+			$("body").keydown(function(event) {
+		        if (event.keyCode == "13") {//keyCode=13是回车键
+		        	search();
+		        }
+		    });
+			function search() {
+				var contactName = $("#contact_name_ct").val();
+				var name = $("#company_ct").val();
+				var code = $("#company_code_ct").val();
+				var data = {
+					contactName : contactName,
+					name : name,
+					companyCode:code
+				};
+				$("#gridTable").setGridParam({
+					'page' : 1,
+					'postData' : data
+				});
+				$("#gridTable").jqGrid('setGridParam', {
+					datatype : 'json'
+				}).trigger('reloadGrid');
+			}
+			function pageInit() {
+				//创建jqGrid组件
+				$("#gridTable")
+						.jqGrid(
+								{
+									url : '/companyData',//组件创建完成之后请求数据的url
+									datatype : "json",//请求数据返回的类型。可选json,xml,txt
+									colNames : [ 'ID','基金公司名称', '基金公司地址', '联系人',
+											'联系方式', '' ],
+									colModel : [ //jqGrid每一列的配置信息。包括名字，索引，宽度,对齐方式.....
+									             {
+														name : 'companyCode',
+														index : 'companyCode',
+														sortable : true,
+														align : "center",
+														width:'80px'
+													},
+													{
+														name : 'name',
+														index : 'name',
+														sortable : true,
+														align : "center",
+														width:'260px'
+													}, {
+														name : 'address',
+														index : 'address',
+														sortable : false,
+														align : "center",
+														width:'450px'
+													}, {
+														name : 'contactName',
+														index : 'contactName',
+														sortable : true,
+														align : "center"
+													}, {
+														name : 'contactNo',
+														index : 'contactNo',
+														sortable : false,
+														align : "center"
+													}, {
+														name : 'operation',
+														index : 'operation',
+														align : "center",
+														sortable : false,
+														width:'100px'
+													} ],
+									width:"100%",
+						            autowidth:true,
+									rowNum : 10,//一页显示多少条
+									rowList : [ 10, 20, 30 ],//可供用户选择一页显示多少条
+									pager : '#pager2',//表格页脚的占位符(一般是div)的id
+									mtype : "post",//向后台请求数据的ajax的类型。可选post,get
+									viewrecords : true,
+									height : "445px",
+									sortname: 'companyCode', //设置默认的排序列
+									sortorder: 'asc',
+									caption : "",//表格的标题名字
+									gridComplete : function() {
+										var ids = jQuery("#gridTable").jqGrid(
+												'getDataIDs');
+										for (var i = 0; i < ids.length; i++) {
+											var operation = '<div class="tbutton optbutton" style="width: 68px;"><a href="#" style="width: 0px;" class="btn btn-info btn-lg" onclick="edit(\''
+													+ ids[i]
+													+ '\')"><span class="glyphicon glyphicon-edit"></span></a>'
+													+ '<a href="#" style="width: 0px;" class="btn btn-info btn-lg" onclick="del(\''
+													+ ids[i]
+													+ '\')"><span class="glyphicon glyphicon-trash"></span></a></div>';
+											$("#gridTable").jqGrid(
+													'setRowData', ids[i], {
+														operation : operation
+													});
+										}
+									}
+								});
+				$("#gridTable").closest(".ui-jqgrid-bdiv").css({
+					"overflow-x" : "hidden"
+				});
+			}
+			function checkTel(tel) {
+				var regTel1 = /^(([0\+]\d{2,3}-)?(0\d{2,3})-)(\d{7,8})(-(\d{3,}))?$/;//带区号的固定电话
+				var regTel2 = /^(\d{7,8})(-(\d{3,}))?$/;//不带区号的固定电话
+				var mobile = /^1\d{10}$/;
+				return mobile.test(tel) || regTel1.test(tel)
+						|| regTel2.test(tel);
+			}
+			function addCompanyValidate() {
+				var validateResult=true;
+				var name = $("#add_company_name_input").val();
+				var contactName = $("#add_contact_name_input").val();
+				var phoneNo = $("#phoneNo").val();
+				var address = $("#add_company_address_input").val();
+				if (name.trim().length ==0) {
+					$("#nameErrorMsg").css('display', 'block');
+					$("#nameErrorMsgSpan").text("基金公司名称不能为空");
+					validateResult = false;
+				}
+				if (contactName.trim().length ==0) {
+					$("#contactNameErrorMsg").css('display', 'block');
+					$("#contactNameErrorMsgSpan").text("联系人姓名不能为空");
+					validateResult = false;
+				}
+				if (phoneNo.trim().length !=0) {
+					if (checkTel(phoneNo)) {
+						$("#noErrorMsg").css('display', 'none');
+						$("#noErrorMsgSpan").text("");
+					} else {
+						$("#noErrorMsg").css('display', 'block');
+						$("#noErrorMsgSpan").text("请填写正确号码");
+						return false;
+					}
+				}else{
+					$("#noErrorMsg").css('display', 'block');
+					$("#noErrorMsgSpan").text("联系方式不能为空");
+					validateResult = false;
+					
+				}
+				if (address.trim().length ==0) {
+					$("#addressErrorMsg").css('display', 'block');
+					$("#addressErrorMsgSpan").text("基金公司地址不能为空");
+					validateResult = false;
+				}
+				return validateResult;
+			}
+
+			$('#add_company_name_input').blur(function() {
+				if ($("#add_company_name_input").val().trim().length !=0) {
+					$("#nameErrorMsg").css('display', 'none');
+					$("#nameErrorMsgSpan").text("");
+				} else {
+					return false;
+				}
+			});
+			$('#add_contact_name_input').blur(function() {
+				if ($("#add_contact_name_input").val().trim().length !=0) {
+					$("#contactNameErrorMsg").css('display', 'none');
+					$("#contactNameErrorMsgSpan").text("");
+				} else {
+					return false;
+				}
+			});
+			$('#phoneNo').blur(function() {
+				if ($("#phoneNo").val().trim().length !=0) {
+					$("#noErrorMsg").css('display', 'none');
+					$("#noErrorMsgSpan").text("");
+					if (checkTel($("#phoneNo").val())) {
+						$("#noErrorMsg").css('display', 'none');
+						$("#noErrorMsgSpan").text("");
+					} else {
+						$("#noErrorMsg").css('display', 'block');
+						$("#noErrorMsgSpan").text("请填写正确号码");
+						return false;
+					}
+				} else{
+					return false;
+				}
+			});
+			$('#add_company_address_input').blur(function() {
+				if ($("#add_company_address_input").val().trim().length !=0) {
+					$("#addressErrorMsg").css('display', 'none');
+					$("#addressErrorMsgSpan").text("");
+				} else {
+					return false;
+				}
+			});
+			$("#add_dialog")
+					.dialog(
+							{
+								autoOpen : false,
+								height : 350,
+								width : 450,
+								modal : true,
+								buttons : {
+									"取消" : function() {
+										$(this).dialog("close");
+									},
+									"确定" : function() {
+										debugger;
+										if (!addCompanyValidate()) {
+											return false;
+										}
+										var jsondata = JSON.stringify($(
+												"#add_company_form")
+												.serializeObject());
+										$
+												.ajax({
+													type : "post",
+													url : "/addCompanyInfo",
+													data : jsondata,
+													dataType : "json",
+													contentType : 'application/json;charset=UTF-8',
+													success : function(flag,
+															textStatus) {
+														$("#add_dialog")
+																.dialog("close");
+														if (flag == 0) {
+															$.jqalert("添加失败","",0);
+														}if (flag == 2) {
+															$.jqalert("添加失败<br/>["+$("#add_company_name_input").val()+"]公司已存在","",0);
+														}else {
+															$.jqalert("添加成功","",1);
+														}
+														$("#gridTable")
+																.jqGrid(
+																		'setGridParam',
+																		{
+																			datatype : 'json'
+																		})
+																.trigger(
+																		'reloadGrid');
+													},
+													error : function(data) {
+														MaskUtil.close(500);
+														$.jqalert("添加失败","",0);
+													}
+												});
+									}
+								},
+								close : function() {
+									$(this).dialog("close");
+								}
+							});
+			$("#addCompany").button().click(function() {
+				$("#add_dialog input").val("");
+				$("#add_dialog span").text("");
+				$("#add_dialog").dialog("open");
+			});
+			//**************************Edit***************************//
+			$('#contactNoInfo').blur(function() {
+				if (checkTel($("#contactNoInfo").val())) {
+					$("#noErrorMsgEdit").css('display', 'none');
+					$("#noErrorMsgSpanEdit").text("");
+				} else {
+					$("#noErrorMsgEdit").css('display', 'block');
+					$("#noErrorMsgSpanEdit").text("请填写正确号码");
+				}
+			});
+			function editCompanyValidate() {
+				var validateResult=true;
+				var name = $("#nameInfo").val();
+				var contactName = $("#contactNameInfo").val();
+				var phoneNo = $("#contactNoInfo").val();
+				var address = $("#addressInfo").val();
+				if (name.trim().length ==0) {
+					$("#nameEditErrorMsg").css('display', 'block');
+					$("#nameEditErrorMsgSpan").text("基金公司名称不能为空");
+					validateResult = false;
+				}
+				if (contactName.trim().length ==0) {
+					$("#contactNameEditErrorMsg").css('display', 'block');
+					$("#contactNameEditErrorMsgSpan").text("联系人姓名不能为空");
+					validateResult = false;
+				}
+				if (phoneNo.trim().length !=0) {
+					if (checkTel(phoneNo)) {
+						$("#noErrorMsgEdit").css('display', 'none');
+						$("#noErrorMsgSpanEdit").text("");
+					} else {
+						$("#noErrorMsgEdit").css('display', 'block');
+						$("#noErrorMsgSpanEdit").text("请填写正确号码");
+						return false;
+					}
+				}else{
+					$("#noErrorMsgEdit").css('display', 'block');
+					$("#noErrorMsgSpanEdit").text("联系方式不能为空");
+					validateResult = false;
+					
+				}
+				if (address.trim().length ==0) {
+					$("#addressEditErrorMsg").css('display', 'block');
+					$("#addressEditErrorMsgSpan").text("基金公司地址不能为空");
+					validateResult = false;
+				}
+				return validateResult;
+			}
+			$('#nameInfo').blur(function() {
+				if ($("#nameInfo").val().trim().length !=0) {
+					$("#nameEditErrorMsg").css('display', 'none');
+					$("#nameEditErrorMsgSpan").text("");
+				}
+			});
+			$('#contactNameInfo').blur(function() {
+				if ($("#contactNameInfo").val().trim().length !=0) {
+					$("#contactNameEditErrorMsg").css('display', 'none');
+					$("#contactNameEditErrorMsgSpan").text("");
+				}
+			});
+			$('#contactNoInfo').blur(function() {
+				if ($("#contactNoInfo").val().trim().length !=0) {
+					$("#noErrorMsgEdit").css('display', 'none');
+					$("#noErrorMsgSpanEdit").text("");
+					if (checkTel($("#phoneNo").val())) {
+						$("#noErrorMsg").css('display', 'none');
+						$("#noErrorMsgSpan").text("");
+					} else {
+						$("#noErrorMsg").css('display', 'block');
+						$("#noErrorMsgSpan").text("请填写正确号码");
+						return false;
+					}
+				}
+			});
+			$('#addressInfo').blur(function() {
+				if ($("#addressInfo").val().trim().length !=0) {
+					$("#addressEditErrorMsg").css('display', 'none');
+					$("#addressEditErrorMsgSpan").text("");
+				}
+			});
+			$("#edit_dialog")
+					.dialog(
+							{
+								autoOpen : false,
+								height : 350,
+								width : 450,
+								modal : true,
+								buttons : {
+									"取消" : function() {
+										$(this).dialog("close");
+									},
+									"确定" : function() {
+										if (!editCompanyValidate()) {
+											return false;
+										}
+										if (!checkTel($("#contactNoInfo").val())) {
+											$("#noErrorMsgEdit").css('display',
+													'block');
+											$("#noErrorMsgSpanEdit").text(
+													"请填写正确号码");
+											return false;
+										}
+										var jsondata = JSON.stringify($(
+												"#edit_company_form")
+												.serializeObject());
+										$
+												.ajax({
+													type : "post",
+													url : "/editCompanyInfo",
+													data : jsondata,
+													dataType : "json",
+													contentType : 'application/json;charset=UTF-8',
+													success : function(flag,
+															textStatus) {
+														$("#edit_dialog")
+																.dialog("close");
+														if (flag == 0) {
+															$.jqalert("修改失败","",0);
+														}if (flag == 2) {
+															$.jqalert("添加失败<br/>["+$("#nameInfo").val()+"]公司已存在","",0);
+														}else {
+															$.jqalert("修改成功","",1);
+														}
+														$("#gridTable")
+																.jqGrid(
+																		'setGridParam',
+																		{
+																			datatype : 'json'
+																		})
+																.trigger(
+																		'reloadGrid');
+													},
+													error : function(data) {
+														MaskUtil.close(500);
+														$.jqalert("修改失败","",0);
+													}
+												});
+									}
+								},
+								close : function() {
+									$(this).dialog("close");
+								}
+							});
+			function edit(id) {
+				$("#edit_dialog input").val("");
+				$("#edit_dialog span").text("");
+				var data = {
+					'id' : id
+				};
+				$.ajax({
+					type : "post",
+					url : "/selectCompanyInfoById",
+					data : JSON.stringify(data),
+					dataType : "json",
+					contentType : 'application/json;charset=UTF-8',
+					success : function(result, textStatus) {
+						$("#id").val(result.id);
+						$("#nameInfo").val(result.name);
+						$("#contactNameInfo").val(result.contactName);
+						$("#contactNoInfo").val(result.contactNo);
+						$("#addressInfo").val(result.address);
+					},
+					error : function(data) {
+						MaskUtil.close(500);
+						$.jqalert("修改失败","",0);
+					}
+				});
+				$("#edit_dialog").dialog("open");
+			}
+			function del(id) {
+				var data = {
+					'id' : id
+				};
+				$.jqconfirm("是否删除此记录？", "温馨提示",function(){
+					$.ajax({
+						type : "post",
+						url : "/deleteCompanyInfoById",
+						data : JSON.stringify(data),
+						dataType : "json",
+						contentType : 'application/json;charset=UTF-8',
+						success : function(flag, textStatus) {
+							if (flag == 0) {
+								$.jqalert("删除失败","",0);
+							} else {
+								$.jqalert("删除成功","",1);
+							}
+							$("#gridTable").jqGrid('setGridParam', {
+								datatype : 'json'
+							}).trigger('reloadGrid');
+						},
+						error : function(data) {
+							MaskUtil.close(500);
+							$.jqalert("删除失败","",0);
+						}
+					});
+				});
+			}
+			//]]>
+		</script>
+	</div>
+</body>
+</html>

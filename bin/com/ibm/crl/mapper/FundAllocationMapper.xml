@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ibm.crl.dao.FundAllocationDao">
+
+	<select id="getAllocationDataCont" resultType="int">
+		select count(1) from T_CAPITAL_ALLOCATION_DETAIL
+	</select>
+	<select id="getAllocationData" resultMap="allocationVo">
+		select d.id,capitalAllocationOverviewId,levelName,amount,
+		amount/totalCapital percentum
+		from T_CAPITAL_ALLOCATION_DETAIL d left join T_CAPITAL_ALLOCATION_OVERVIEW o on
+		o.id=d.capitalAllocationOverviewId 
+		LIMIT 5
+	</select>
+	<select id="getAllocationTotal"  resultType="double">
+		select totalCapital from T_CAPITAL_ALLOCATION_OVERVIEW LIMIT 1
+	</select>
+	<resultMap id="allocationVo" type="com.ibm.crl.model.FundAllocationVo">
+		<id property="id" column="id" />
+		<id property="capitalAllocationOverviewId" column="capitalAllocationOverviewId" />
+		<id property="levelName" column="levelName" />
+		<id property="amount" column="amount" />
+		<id property="percentum" column="percentum" />
+	</resultMap>
+
+</mapper>

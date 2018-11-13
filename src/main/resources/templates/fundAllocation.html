@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorator="layout/layout">
+<head>
+<title>德浓信息：投资分配</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<div layout:fragment="content" style="height: 100%;">
+		<div class="info-reveal-title">投资分配</div>
+		<div class="fund_sum">
+			<span>投资总金额：</span><span id="fund">0.00</span><span>万元</span>
+			<div style="float: right;">
+				<button id="mypopover" class="btn btn-primary" style="margin: auto;margin-right: 30px;"
+	            data-container="body"  data-placement="top" onclick="popover()" 
+				>生成投资报告并发送</button>
+			</div>
+		</div>
+		<div class="info-reveal-table" id="table_panle" style="min-height: 530px;">
+			<div>
+				<table id="gridTable" border="1" style="width: 98%;"></table>
+				<div id="pager2"></div>
+			</div>
+		</div>
+		 <!--弹出框，依赖工具提示，需要手动初始化-->  
+          <div class="row" id="ljhdialog" style="margin-right: 0px;">  
+              <div class="col-xs-12 text-center">  
+                  <div id="popover-head" class="hide"><span class="glyphicon glyphicon-exclamation-sign" style="color: #f2c47f;"></span>生成投资报告发送老基会</div>  
+                  <div id="popover-content" class="hide">  
+                    <button class="btn btn-default" onclick="sendLjhCancel()">取消</button> 
+                    <button class="btn btn-primary">确定</button> 
+                  </div>  
+              </div>  
+         </div> 
+		<script type="text/javascript">
+			//<![CDATA[
+			$(function() {
+				$("#fund_allocation").css("background", "#000");
+				$("#fund_allocation a").addClass("active");
+				total();
+				//页面加载完成之后执行
+				pageInit();
+				$(window).resize(function(){　　
+					$("#gridTable").setGridWidth($("#table_panle").width());　
+				});　
+				$('#mypopover').popover({   
+					 trigger: 'manual',
+                    html : true,  
+                    title: function() {  
+                      return $("#popover-head").html();  
+                    },  
+                    content: function() {  
+                      return $("#popover-content").html();  
+                    }
+                });
+				
+			});
+			var status = 0;
+			function popover(){
+				if(status == 0){
+					$('#mypopover').popover('show');
+					status = 1;
+				}else{
+					$('#mypopover').popover('hide');
+					status = 0;
+				}
+			};
+			function sendLjhCancel(){
+				 $('#mypopover').popover('hide');
+				 status = 0;
+			};
+			function total(){
+				$.ajax({
+					type : "post",
+					url : "/getAllocationTotal",
+					data : '',
+					dataType : "json",
+					contentType : 'application/json;charset=UTF-8',
+					success : function(result, textStatus) {
+						var rest = result.toFixed(2);;
+						$("#fund").html(rest);
+					},
+					error : function(data) {
+						$.jqalert("系统错误","",0);
+					}
+				});
+			}
+			function pageInit() {
+				//创建jqGrid组件
+				$("#gridTable")
+						.jqGrid(
+								{
+									url : '/fundAllocationData',//组件创建完成之后请求数据的url
+									datatype : "json",//请求数据返回的类型。可选json,xml,txt
+									colNames : [ '风险等级', '本期投资金额（单位：万元）', '百分比'],
+									colModel : [ //jqGrid每一列的配置信息。包括名字，索引，宽度,对齐方式.....
+									{
+										name : 'levelName',
+										index : 'levelName',
+										sortable : false,
+										align : "center"
+									}, {
+										name : 'amount',
+										index : 'amount',
+										sortable : false,
+										formatter : "number",
+										formatoptions : {
+											decimalSeparator : ".",
+											thousandsSeparator : ",",
+											decimalPlaces : 2,
+											defaulValue : 0
+										},
+										align : "center"
+									}, {
+										name : 'percentum',
+										index : 'percentum',
+										sortable : false,
+										formatter:function(value,options,rowData){
+											if(value == null || value == 0){
+												return "0"
+											}
+						                    return value+"%"
+						                },
+										align : "center"
+									} ],
+						            autowidth:true,
+									//rowNum : 10,//一页显示多少条
+									//rowList : [ 10, 20, 30 ],//可供用户选择一页显示多少条
+									//pager : '#pager2',//表格页脚的占位符(一般是div)的id
+									//sortname : 'updateTime',//初始化的时候排序的字段
+									//sortorder : "desc",//排序方式,可选desc,asc
+									mtype : "post",//向后台请求数据的ajax的类型。可选post,get
+									viewrecords : true,
+									height : "auto",
+									caption : ""
+								});
+				$("#gridTable").closest(".ui-jqgrid-bdiv").css({
+					"overflow-x" : "hidden"
+				});
+			}
+			//]]>
+		</script>
+	</div>
+</body>
+</html>

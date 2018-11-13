@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
+	layout:decorator="layout/layout">
+<head>
+<title>德浓信息：投资信息披露</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<div layout:fragment="content">
+		<div class="info-reveal-title">投资信息披露</div>
+		<div class="info-reveal-search reveal" id="searchTerm">
+			<div class="row" style="padding-top: 5px;">
+				<div class="col-md-3">
+					产品名称：<input placeholder="请输入产品名称" id="product"/>
+				</div>
+				<div class="col-md-4" style="padding-left: 50px;">
+					投资公司：<input placeholder="请输入公司名称" id="companyName"/>
+				</div>
+				<div class="col-md-4" style="padding-left: 60px;">
+					<span style="float: left;">报告类型：</span>
+					<div style="float: left; width: 148px;">
+						<select id="selectPickerId" class="form-control selectpicker">
+							<option value="">请选择</option>
+	         				<option value="季度报告">季度报告</option>
+							<option value="年度报告">年度报告</option>
+	        			</select>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">
+					起始投资时间： <input size="16" type="text" id="investTimeStart"
+						class="form_datetime" placeholder="开始日期"/> <span>-</span> <input size="16"
+						type="text" id="investTimeEnd" class="form_datetime" placeholder="结束日期"/>
+				</div>
+				<div class="col-md-5">
+					报告起始时间： <input size="16" type="text" id="reportTimeStart"
+						class="form_datetime" placeholder="开始日期"/> <span>-</span> <input size="16"
+						type="text" id="reportTimeEnd" class="form_datetime" placeholder="结束日期"/>
+				</div>
+				<div class="col-md-2" style="float: right;margin-bottom: 10px;">
+					<button type="reset" class="btn btn-default"  onclick="reset()">重置</button>
+					<button type="submit" class="btn btn-primary"  style="margin-left: 12px;" onclick="search()">查询</button>
+				</div>
+			</div>
+		</div>
+		<div class="info-reveal-table" id="table_panle">
+			<div>
+				<table id="gridTable" border="1" style="width: 98%;"></table>
+				<div id="pager2"></div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			//<![CDATA[
+			$(function() {
+				$("#info_reveal").css("background", "#000");
+				$("#info_reveal a").addClass("active");
+				$(window).resize(function(){　　
+					$("#gridTable").setGridWidth($("#table_panle").width());　
+				});
+				//页面加载完成之后执行
+				pageInit();
+				initDatetimepocker();
+			});
+			$("body").keydown(function(event) {
+		        if (event.keyCode == "13") {//keyCode=13是回车键
+		        	search();
+		        }
+		    });
+			function search() {
+				var product = $("#product").val();
+				var company = $("#companyName").val();
+				var reportType = $('#selectPickerId').val();
+				var investTimeStart = $("#investTimeStart").val();
+				var investTimeEnd = $("#investTimeEnd").val();
+				var reportTimeStart = $("#reportTimeStart").val();
+				var reportTimeEnd = $("#reportTimeEnd").val();
+				var data = {
+					product : product,
+					company : company,
+					reportType :reportType,
+					investTimeStart :investTimeStart,
+					investTimeEnd :investTimeEnd,
+					reportTimeStart :reportTimeStart,
+					reportTimeEnd :reportTimeEnd
+				};
+				$("#gridTable").setGridParam({
+					'page' : 1,
+					'postData' : data
+				});
+				$("#gridTable").jqGrid('setGridParam', {
+					datatype : 'json'
+				}).trigger('reloadGrid');
+			}
+			function reset(){
+				$('#searchTerm :input').val("");
+				$("#selectPickerId").each(function(){
+					$(this).selectpicker('val',$(this).find('option:first').val());
+					$(this).find("option").attr("selected", false);   
+				});
+				$("#investTimeStart").datetimepicker('remove');
+				$("#investTimeEnd").datetimepicker('remove');
+				$("#reportTimeStart").datetimepicker('remove');
+				$("#reportTimeEnd").datetimepicker('remove');
+				initDatetimepocker();
+				search();
+			}
+			function pageInit() {
+				//创建jqGrid组件
+				$("#gridTable")
+						.jqGrid(
+								{
+									url : '/infoRevealData',//组件创建完成之后请求数据的url
+									datatype : "json",//请求数据返回的类型。可选json,xml,txt
+									colNames : [ '投资公司', '产品名称', '产品代码',
+											'产品起始投资日期', '报告类型', '报告起始日期', '' ],
+									colModel : [ //jqGrid每一列的配置信息。包括名字，索引，宽度,对齐方式.....
+									{
+										name : 'company',
+										index : 'company',
+										align : "center",
+										sortable : true
+									}, {
+										name : 'product',
+										index : 'product',
+										align : "center",
+										sortable : true
+									}, {
+										name : 'productCode',
+										index : 'productCode',
+										align : "center",
+										width:'80px',
+										sortable : true
+									}, {
+										name : 'investTimeStr',
+										index : 'investTimeStr',
+										width:'105px',
+										align : "center",
+										sortable : true
+									}, {
+										name : 'reportType',
+										index : 'reportType',
+										align : "center",
+										width:'80px',
+										sortable : true
+									}, {
+										name : 'reportTimeStr',
+										index : 'reportTimeStr',
+										align : "center",
+										width:'80px',
+										sortable : true
+									}, {
+										name : 'operation',
+										index : 'operation',
+										align : "center",
+										width:'70px',
+										sortable : false
+									} ],
+									width:"100%",
+						            autowidth:true,
+									rowNum : 10,//一页显示多少条
+									rowList : [ 10, 20, 30 ],//可供用户选择一页显示多少条
+									pager : '#pager2',//表格页脚的占位符(一般是div)的id
+									sortname : 'investTime',//初始化的时候排序的字段
+									sortorder : "asc",//排序方式,可选desc,asc
+									mtype : "post",//向后台请求数据的ajax的类型。可选post,get
+									viewrecords : true,
+									height : "450px",
+									caption : "",//表格的标题名字
+									gridComplete : function() {
+										var ids = jQuery("#gridTable").jqGrid(
+												'getDataIDs');
+										for (var i = 0; i < ids.length; i++) {
+											var operation = '<div class="tbutton optbutton" id="openPdf"><a class="media" href="/test.pdf" target="_blank" style="color: #2eb5f5;">查看报告</a></div>';
+											$("#gridTable").jqGrid(
+													'setRowData', ids[i], {
+														operation : operation
+													});
+										}
+									}
+								});
+				/*创建jqGrid的操作按钮容器*/
+				$("#gridTable").closest(".ui-jqgrid-bdiv").css({
+					"overflow-x" : "hidden"
+				});
+			}
+			function initDatetimepocker(){
+				$("#investTimeStart").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#investTimeStart").datetimepicker("setEndDate",
+									$("#investTimeEnd").val())
+						});
+				$("#investTimeEnd").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#investTimeEnd").datetimepicker("setStartDate",$("#investTimeStart").val());
+						}); 
+				$("#reportTimeStart").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#reportTimeStart").datetimepicker("setEndDate",
+									$("#reportTimeEnd").val())
+						});
+				$("#reportTimeEnd").datetimepicker({
+					format : 'yyyy-mm-dd',
+					minView : 'month',
+					language : 'zh-CN',
+					autoclose : true
+				}).on(
+						"click",
+						function() {
+							$("#reportTimeEnd").datetimepicker("setStartDate",
+									$("#reportTimeStart").val());
+						});
+			}
+			
+			//]]>
+		</script>
+
+	</div>
+</body>
+</html>

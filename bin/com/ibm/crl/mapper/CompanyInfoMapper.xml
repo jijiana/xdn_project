@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ibm.crl.dao.CompanyInfoDao">
+
+	<select id="getCompanyDataCont" resultType="int">
+		select count(1) from T_INVEST_COMPANY
+		where isDeleted=0
+		<if test="vo.contactName!=null and vo.contactName!=''">
+			and contactName Like '%${vo.contactName}%'
+		</if>
+		<if test="vo.name!=null and vo.name!=''">
+			and name Like '%${vo.name}%'
+		</if>
+		<if test="vo.companyCode!=null and vo.companyCode!=''">
+			and companyCode = ${vo.companyCode}
+		</if>
+	</select>
+	<select id="getCompanyData" resultMap="companyInfoVo">
+		select * from T_INVEST_COMPANY
+		where isDeleted=0
+		<if test="vo.contactName!=null and vo.contactName!=''">
+			and contactName Like '%${vo.contactName}%'
+		</if>
+		<if test="vo.name!=null and vo.name!=''">
+			and name Like '%${vo.name}%'
+		</if>
+		<if test="vo.companyCode!=null and vo.companyCode!=''">
+			and companyCode = ${vo.companyCode}
+		</if>
+		order by ${vo.sidx} ${vo.sord}
+		LIMIT #{pc.dbStartNo},#{pc.rows}
+	</select>
+	<select id="getCompanyNames" parameterType="string"	resultMap="companyInfoVo">
+		select * from T_INVEST_COMPANY where name=#{name} and isDeleted = '0'
+	</select>
+	<insert id="addCompanyInfo" parameterType="companyInfoVo">
+		insert into
+		T_INVEST_COMPANY(id,name,address,contactName,contactNo,createTime,updateTime,companyCode,isDeleted)
+		select
+		#{id},#{name},#{address},#{contactName},#{contactNo},#{createTime},#{createTime},(max(companyCode)+1),0
+		from T_INVEST_COMPANY
+	</insert>
+
+	<select id="selectCompanyInfoById" parameterType="string"
+		resultMap="companyInfoVo">
+		select * from T_INVEST_COMPANY where id = #{id}
+	</select>
+
+	<update id="editCompanyInfo" parameterType="companyInfoVo">
+		update T_INVEST_COMPANY set updateTime = #{updateTime}
+		<if test="name!=null and name!=''">
+			,name=#{name}
+		</if>
+		<if test="address!=null and address!=''">
+			,address=#{address}
+		</if>
+		<if test="contactName!=null and  contactName!=''">
+			,contactName=#{contactName}
+		</if>
+		<if test="contactNo!=null and contactNo!=''">
+			,contactNo=#{contactNo}
+		</if>
+		where id=#{id}
+	</update>
+	<update id="deleteCompanyInfoById" parameterType="string">
+		update T_INVEST_COMPANY set isDeleted=1 where id=#{id}
+	</update>
+	<resultMap id="companyInfoVo" type="com.ibm.crl.model.CompanyInfoVo">
+		<id property="id" column="id" />
+		<id property="name" column="name" />
+		<id property="address" column="address" />
+		<id property="companyCode" column="companyCode" />
+		<id property="contactName" column="contactName" />
+		<id property="contactNo" column="contactNo" />
+		<id property="createTime" column="createTime" />
+		<id property="updateTime" column="updateTime" />
+		<id property="createUserCode" column="createUserCode" />
+		<id property="updateUserCode" column="updateUserCode" />
+		<id property="isDeleted" column="isDeleted" />
+	</resultMap>
+
+</mapper>

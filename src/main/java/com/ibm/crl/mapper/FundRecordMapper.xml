@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ibm.crl.dao.FundRecordDao">
+
+	<select id="getRecordDataCont" resultType="int">
+		select count(1) from 
+		(
+		select d.capitalAllocationOverviewId as id
+		from T_CAPITAL_ALLOCATION_OVERVIEW o
+		left join T_CAPITAL_ALLOCATION_DETAIL d on o.id=d.capitalAllocationOverviewId
+		where d.capitalAllocationOverviewId is not null
+		<if test="vo.fundTimeStart!=null and vo.fundTimeStart!=''">
+			and o.sendTime >=CONCAT(#{vo.fundTimeStart},'00:00:00')
+		</if>
+		<if test="vo.fundTimeEnd!=null  and vo.fundTimeEnd!=''">
+			and o.sendTime <![CDATA[<= ]]>CONCAT(#{vo.fundTimeEnd},'23:59:59')
+		</if>
+		group by d.capitalAllocationOverviewId
+		) a left join T_CAPITAL_ALLOCATION_OVERVIEW b on a.id = b.id
+		<if test="vo.investCode!=null and vo.investCode!=''">
+			and investCode = #{vo.investCode}
+		</if>
+		<if test="vo.status!=null and vo.status!=''">
+			and status = #{vo.status}
+		</if>
+	</select>
+	<select id="getRecordData" resultMap="recordVo">
+		select a.*,b.status,b.investCode,b.sendTime from 
+		(
+		select d.capitalAllocationOverviewId as id,sum(amount) as total,
+		max(case d.levelName when '保守型-R1' then amount else 0 end ) as r1Amount,
+		max(case d.levelName when '温和型-R2' then amount else 0 end ) as r2Amount,
+		max(case d.levelName when '平衡型-R3' then amount else 0 end ) as r3Amount,
+		max(case d.levelName when '自信型-R4' then amount else 0 end ) as r4Amount,
+		max(case d.levelName when '进取型-R5' then amount else 0 end ) as r5Amount
+		from T_CAPITAL_ALLOCATION_OVERVIEW o
+		left join T_CAPITAL_ALLOCATION_DETAIL d on o.id=d.capitalAllocationOverviewId
+		where d.capitalAllocationOverviewId is not null
+		<if test="vo.fundTimeStart!=null and vo.fundTimeStart!=''">
+			and o.sendTime >=CONCAT(#{vo.fundTimeStart},'00:00:00')
+		</if>
+		<if test="vo.fundTimeEnd!=null  and vo.fundTimeEnd!=''">
+			and o.sendTime <![CDATA[<= ]]>CONCAT(#{vo.fundTimeEnd},'23:59:59')
+		</if>
+		group by d.capitalAllocationOverviewId
+		) a join T_CAPITAL_ALLOCATION_OVERVIEW b on a.id = b.id
+		<if test="vo.investCode!=null and vo.investCode!=''">
+			and investCode = #{vo.investCode}
+		</if>
+		<if test="vo.status!=null and vo.status!=''">
+			and status = #{vo.status}
+		</if>
+		order by ${vo.sidx} ${vo.sord}
+	</select>
+	<select id="getAllocationTotal"  resultType="double">
+		select totalCapital from T_CAPITAL_ALLOCATION_OVERVIEW LIMIT 1
+	</select>
+	<resultMap id="recordVo" type="com.ibm.crl.model.FundRecordVo">
+		<id property="id" column="id" />
+		<id property="r1Amount" column="r1Amount" />
+		<id property="r2Amount" column="r2Amount" />
+		<id property="r3Amount" column="r3Amount" />
+		<id property="r4Amount" column="r4Amount" />
+		<id property="r5Amount" column="r5Amount" />
+		<id property="sendTime" column="sendTime" />
+		<id property="total" column="total" />
+		<id property="status" column="status" />
+		<id property="investCode" column="investCode" />
+	</resultMap>
+
+</mapper>

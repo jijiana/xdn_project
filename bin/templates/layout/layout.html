@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  </head>
+   <link th:href="@{/custom/css/main.css}" rel="stylesheet" type="text/css" />
+   <link th:href="@{/jquery/css/jquery-ui.min.css}" rel="stylesheet" type="text/css" />
+   <link th:href="@{/bootstrap/css/bootstrap.css}" rel="stylesheet" type="text/css" />
+   <link th:href="@{/bootstrap/css/bootstrap-datetimepicker.min.css}" rel="stylesheet" type="text/css" />
+   <link th:href="@{/bootstrap/css/bootstrap-select.css}" rel="stylesheet" type="text/css" />
+   <link th:href="@{/jqgrid/css/ui.jqgrid.css}" rel="stylesheet" type="text/css" />
+   <script th:src="@{/jquery/js/jquery.min.js}"></script>
+   <script th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+   <script th:src="@{/jquery/js/jquery-ui.min.js}"></script>
+   <script th:src="@{/bootstrap/js/bootstrap-datetimepicker.min.js}"></script>
+   <script th:src="@{/bootstrap/js/bootstrap-select.js}"></script>
+   <script th:src="@{/jqgrid/js/jquery-form-json.js}"></script>
+   <script th:src="@{/jqgrid/js/jquery.jqGrid.src.js}"></script>
+   <script th:src="@{/jqgrid/js/jqalert.js}"></script>
+   <script th:src="@{/jqgrid/js/i18n/grid.locale-cn.js}"></script>
+   <script th:src="@{/jquery/js/jquery.media.js}"></script>
+  <body>
+  	<div>
+	 	<div class="wrap">
+            <div id="left" class="left">
+            	<div th:include="layout/left :: left"></div>
+            </div>
+            <div id="right" class="right">
+            	<div class="pull-right-parent">
+		  			<div class="pull-right" th:include="layout/header :: header"></div>
+            	</div>
+            	<div>
+			  		<div layout:fragment="content"></div>
+            	</div>
+            </div>
+        </div>
+  	</div>
+    <!-- 
+    
+    -->
+  </body>
+</html>

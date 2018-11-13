@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+</head>
+<link th:href="@{/custom/css/main.css}" rel="stylesheet" type="text/css" />
+<link th:href="@{/jquery/css/jquery-ui.min.css}" rel="stylesheet"
+	type="text/css" />
+<link th:href="@{/bootstrap/css/bootstrap.css}" rel="stylesheet"
+	type="text/css" />
+<link th:href="@{/bootstrap/css/bootstrap-datetimepicker.min.css}"
+	rel="stylesheet" type="text/css" />
+<link th:href="@{/jqgrid/css/ui.jqgrid.css}" rel="stylesheet"
+	type="text/css" />
+<script th:src="@{/jquery/js/jquery.min.js}"></script>
+<script th:src="@{/jquery/js/jquery.media.js}"></script>
+<script th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+<script th:src="@{/jquery/js/jquery-ui.min.js}"></script>
+<script th:src="@{/bootstrap/js/bootstrap-datetimepicker.min.js}"></script>
+<script th:src="@{/jqgrid/js/jquery-form-json.js}"></script>
+<script th:src="@{/jqgrid/js/jquery.jqGrid.src.js}"></script>
+<script th:src="@{/jqgrid/js/jqalert.js}"></script>
+<script th:src="@{/jqgrid/js/i18n/grid.locale-cn.js}"></script>
+<body style="background: #f2f2f2;">
+	<div style="text-align: center;margin-top: 20%;">
+		<div>用户名：<input id="username"/> </div>
+		<div style="margin-top: 10px">密&nbsp;&nbsp;&nbsp;码：<input id="password" type="password"/></div>
+		<div style="margin-top: 10px;"><span style="color: red;" id="loginErrorMsg"></span></div>
+		<button id="login" class="btn btn-primary" onclick="loginValidate()" style="width: 210px;margin-top: 10px;">登录</button>
+	</div>
+</body>
+<script type="text/javascript">
+	//<![CDATA[
+    $('#username').blur(function() {
+    	var name = $("#username").val();
+    	if( "" != name){
+	    	$("#loginErrorMsg").text("");
+		}
+	});
+    $('#password').blur(function() {
+    	var pwd = $("#password").val();
+    	if(""!= pwd){
+			$("#loginErrorMsg").text("");
+		}
+	});
+    $("body").keydown(function(event) {
+        if (event.keyCode == "13") {//keyCode=13是回车键
+        	loginValidate();
+        }
+    });
+	function loginValidate(){
+		var name = $("#username").val();
+		var pwd = $("#password").val();
+		var data = {'username':name,'password':pwd};
+		if( "" == name){
+			$("#loginErrorMsg").text("用户名不能为空");
+			return false;
+		}
+		if("" == pwd){
+			$("#loginErrorMsg").text("密码不能为空");
+			return false;
+		}
+		$.ajax({
+			type : "post",
+			url : "/loginValidate",
+			data : JSON.stringify(data),
+			dataType : "json",
+			contentType : 'application/json;charset=UTF-8',
+			success : function(result, textStatus) {
+				if(result == 0){
+					window.location.href='/fund_allocation';
+				}else{
+					$("#loginErrorMsg").text("用户名或密码错误");
+					//$.jqalert("用户名/密码错误","",0);
+				}
+		    }, 
+		    error: function(data) {
+		    	alert(data);
+                $.jqalert("登录失败","",0);
+            } 
+		});
+	}
+	//]]>
+</script>
+</html>
